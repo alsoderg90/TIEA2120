@@ -1000,7 +1000,7 @@ function tulostaJoukkueet2(data) {
 	for (var j of data["joukkueet"]) {
 
 		let joukkue = {
-		"nimi" : j["nimi"],
+		"nimi" : j["nimi"].trim(),
 		"pisteet" : 0
 		};
 		joukkue["pisteet"] = joukkueenPisteet(j, lahtoaika, loppuaika);
@@ -1061,7 +1061,7 @@ function tulostaJoukkueet3(data) {
 	let joukkueet = [];
 	for (var j of data["joukkueet"]) {
 		let joukkue = {
-		"nimi" : j["nimi"],
+		"nimi" : j["nimi"].trim(),
 		"pisteet" : 0,
 		"kilometrit": 0,
 		"aika": "",
@@ -1170,48 +1170,49 @@ function joukkueenKilometrit(joukkue, lahtoaika, loppuaika) {
 	let i = 0;
 	let j = i+1;
 	while (j<joukkue["rastit"].length) {
-		try {
-			if (joukkue["rastit"][i]["rasti"]["koodi"] == "MAALI" && lahto) {
-				break;
-			}		
-			if (joukkue["rastit"][i]["rasti"]["koodi"] == "LAHTO" || lahto) {
-			//console.log(joukkue["rastit"][i]["rasti"]);
-				lahto = true;
-				let lat1 = parseFloat(joukkue["rastit"][i]["rasti"]["lat"]);
-				let lon1 = parseFloat(joukkue["rastit"][i]["rasti"]["lon"]);
-				let lat2 = parseFloat(joukkue["rastit"][j]["rasti"]["lat"]);
-				let lon2 = parseFloat(joukkue["rastit"][j]["rasti"]["lon"]);
-				if (!lat1 || !lon1 || isNaN(lat1) || isNaN(lon1)) {
-					i++;
-					j++;
-					continue;
-				}
-				else if (!lat2 || !lon2 || isNaN(lat2) || isNaN(lon2)) {
-					j++;
-					continue;
-				}
+		if (joukkue["rastit"][i]["rasti"]["koodi"] == "MAALI" && lahto) {
+			break;
+		}		
+		if (joukkue["rastit"][i]["rasti"]["koodi"] == "LAHTO" || lahto) {
+		//console.log(joukkue["rastit"][i]["rasti"]);
+			lahto = true;
+			let lat2;
+			let lon2;
+			let lat1 = parseFloat(joukkue["rastit"][i]["rasti"]["lat"]);
+			let lon1 = parseFloat(joukkue["rastit"][i]["rasti"]["lon"]);
+			try {
+				lat2 = parseFloat(joukkue["rastit"][j]["rasti"]["lat"]);
+				lon2 = parseFloat(joukkue["rastit"][j]["rasti"]["lon"]);
+			}
+			catch(e) {
+				j++;
+				continue;
+			}
+
+			if (!lat1 || !lon1 || isNaN(lat1) || isNaN(lon1)) {
+				i++;
+				j++;
+				continue;
+			}
+			else if (!lat2 || !lon2 || isNaN(lat2) || isNaN(lon2)) {
+				j++;
+				continue;
+			}
 				//console.log(lat1, lon1, lat2, lon2);
-				let etaisyys = getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2 );
-				if (!isNaN(etaisyys)) {
-					matka += etaisyys;
-					//console.log(etaisyys);
-				}
+			let etaisyys = getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2 );
+			if (!isNaN(etaisyys)) {
+				matka += etaisyys;
+				//console.log(etaisyys);
+			}
 				//console.log(joukkue["rastit"][i]["rasti"]);
 				//console.log(joukkue["rastit"][j]["rasti"]);
-				i = j;
-				j = i+1;
-			}
-			else {
-			//console.log("else", joukkue["rastit"][i]);
-			i++;
-			j++;
-			}
+			i = j;
+			j = i+1;
 		}
-		catch(e) {
-			//console.log(e);
-			i++;
-			j++;
-			continue;
+		else {
+		//console.log("else", joukkue["rastit"][i]);
+		i++;
+		j++;
 		}		
 	}
 	//console.log(matka);
