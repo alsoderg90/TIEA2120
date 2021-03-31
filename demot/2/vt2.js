@@ -385,10 +385,10 @@ function lisaaJoukkue() {
 	let maxId = Number.MIN_SAFE_INTEGER;
 	for (let j of data["joukkueet"]) {
 		if (j["id"] >= parseInt(maxId)) {
-		maxId = j["id"] + 1 ;
+		maxId = j["id"];
 		}
 	}
-	joukkue["id"] = maxId;
+	joukkue["id"] = maxId  + 1 ;
 	joukkue["nimi"] = lomake.querySelector("p label input").value;
 	let inputit = lomake.getElementsByTagName("input");
 	for (let i=inputit.length-1 ; i>-1; i--) {
@@ -459,14 +459,14 @@ function lisaaRasti(input1, input2, input3){
 	let maxId = Number.MIN_SAFE_INTEGER;
 	for (let r of data["rastit"]) {
 		if (r["id"] >= parseInt(maxId)) {
-			maxId = r["id"] + 1 ;
+			maxId = r["id"];
 		}
 	}
 	let lat = input1.value;
 	let lon = input2.value;
 	let koodi = input3.value;
 	let rasti = {
-		"id" : maxId,
+		"id" : maxId + 1 ,
 		"koodi" : koodi,
 		"lat" : lat,
 		"lon" : lon
