@@ -13,23 +13,20 @@
  vain tarpeelliset kuten leimaustapojen ja sarjojen valinta sekä joukkuelistaus
   -->
        <h1>Tulospalvelu</h1>
-		<div>
 		<form action="#" method="post" id="lomake">
 		<fieldset id="joukkue">
 		<legend>Joukkueen tiedot</legend>
-		<p>
-		<label for="nimi"> Nimi </label>
-		<input id="nimi" type="text" required="required" pattern="\S+" minlength="2"></input>
-		</p>
-		<p>
-		<label> Leimaustapa </label>
-		</p>
-		<div id="leimaustavat">
+		<div class="vasen">
+			<label for="nimi"> Nimi </label>
 		</div>
 		<p>
-		<label> Sarja </label>
+			<input id="nimi" type="text" required="required" pattern="\S+" minlength="2"></input>
 		</p>
-		<div id="sarjat">
+		<div id="leimaustavat" class="vasen">
+			<label> Leimaustapa </label>
+		</div>
+		<div id="sarjat" class="vasen">
+		<label> Sarja </label>
 		</div>
 		</fieldset>
 		<fieldset id="jasen">
@@ -43,11 +40,8 @@
 		<input id="jasen2" type="text"></input>
 		</p>
 		</fieldset>
-		<p>
 		<input type="submit" name="laheta" value="Tallenna"></input>
-		</p>
 		</form>
-		</div>
 
 		<form action="#" method="post" id="lomakeLT">
 		<fieldset id="leimaustapa">

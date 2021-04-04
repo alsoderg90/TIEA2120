@@ -21,7 +21,7 @@ function lisaaJoukkue(data) {
 		"nimi": "",
 		"sarja": 0,
 		"jasenet": [],
-		"leimaustapa": [0],
+		"leimaustapa": []
 	};
 	let nimi = document.getElementById("nimi").value.trim();
 	let maxId = Number.MIN_SAFE_INTEGER;
@@ -41,6 +41,13 @@ function lisaaJoukkue(data) {
 				joukkue["sarja"] = parseInt(s.value);
 			}
 		}
+	let leimaustavat = document.querySelectorAll('input[type="checkbox"]');
+		for (let lt of leimaustavat) {
+			if (lt.checked) {
+				joukkue["leimaustapa"] = joukkue["leimaustapa"].concat(lt.value);
+			}
+		}		
+		
 	let jasenet = document.getElementById("jasen");
 	let inputit = jasenet.getElementsByTagName("input");
 	for (let x=0; x<inputit.length; x++) {
@@ -85,8 +92,11 @@ function listaaJoukkueet(data, paivitys) {
 }
 
 function leimaustavat(data) {
+	let leimaustavat = data["leimaustapa"];
+	leimaustavat.sort((a,b) => a < b ? 1: -1 );
 	let div = document.getElementById("leimaustavat");
-	for (let lt of data["leimaustapa"]) {
+	for (let lt of leimaustavat) {
+		div.appendChild(document.createElement("br"));
 		let label = document.createElement("label");
 		label.setAttribute("for", lt);
 		label.textContent = lt + " ";
@@ -94,22 +104,25 @@ function leimaustavat(data) {
 		input.setAttribute("value", lt);
 		input.setAttribute("id", lt);
 		input.setAttribute("type","checkbox");
-		label.appendChild(input);
-		div.appendChild(label);
+		let p = document.createElement("p");
+		p.appendChild(label);
+		p.appendChild(input);
+		div.insertAdjacentElement("afterend", p);
 	}
 }
 
 function sarjat(data) {
 	let sarjat = data["sarjat"];
-	sarjat.sort((a,b) => a["nimi"].toUpperCase() > b["nimi"].toUpperCase() ? 1 : -1);
+	sarjat.sort((a,b) => a["nimi"].toUpperCase() < b["nimi"].toUpperCase() ? 1 : -1);
 	let div = document.getElementById("sarjat");
 	let checked = false;
 	for (let s of sarjat) {
+		div.appendChild(document.createElement("br"));
 		let label = document.createElement("label");
 		label.setAttribute("for", s["nimi"]);
 		label.textContent=s["nimi"];
 		let input = document.createElement("input");
-		input.setAttribute("name", s["nimi"]);
+		input.setAttribute("name", "radio");
 		input.setAttribute("value", s["id"]);
 		input.setAttribute("id", s["nimi"]);
 		input.setAttribute("type", "radio");
@@ -117,8 +130,10 @@ function sarjat(data) {
 			input.setAttribute("checked", "checked");
 			checked = !checked;
 		}
-		label.appendChild(input);
-		div.appendChild(label);
+		let p = document.createElement("p");
+		p.appendChild(label);
+		p.appendChild(input);
+		div.insertAdjacentElement("afterend", p);
 	}
 }
 
@@ -129,23 +144,3 @@ function etsiSarja(id, data) {
 		}
 	}
 }
-
-
-/*
-function luoLomake() {
-
-	let body = document.getElementsByTagName("body")[0];
-	let div = document.createElement("div");
-	let lomake = document.createElement("form");
-	let fieldset_joukkue = document.createElement("fieldset");
-	fieldset_joukkue.appendChild(document.createElement("legend")).textContent = "Joukkueen tiedot";
-	lomake.appendChild(fieldset_joukkue);
-	div.appendChild(lomake);
-	body.appendChild(div);
-	
-	let labelNimi = document.createElement("label");
-	labelNimi.textContent = "Nimi";
-	let inputNimi = document.createElement("input);
-	labelNimi.appendChild(inputNimi);
-}
-*/

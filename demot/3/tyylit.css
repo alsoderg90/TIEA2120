@@ -1,13 +1,12 @@
-/*
-label{
-    display: block;
-    clear: left;
-    width: 250px;
-    text-align: left;
-	margin: 5px;
-} */
+.vasen {
+	width: 60%;
+	float: left;
+}
 
-input {
-	display: block;
-	float: right;
+p {
+	margin: 0;
+}
+
+fieldset {
+	width:50%;
 }
