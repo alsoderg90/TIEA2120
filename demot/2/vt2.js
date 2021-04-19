@@ -6,14 +6,19 @@
 console.log(data);
 
 window.onload = function() {
-	listaaJoukkueet(data, false, "sarja");
+	let div = document.getElementById("tupa");
+	div.tapa = "sarja";
+	listaaJoukkueet(data, false, div.tapa);
 	luoRastiLomake(data);
 	lisaaJoukkueLomake(data);
 };
 
-/*
-Luo taulukon johon listataan joukkueen nimi, pisteet, sarja ja jäsenet
-*/
+/**
+ * Muokkaa parametrina olevan joukkueen
+ * @param data - tietorakenne
+ * @param paivitys - päivitetäänkö lista vai luodaanko ensimmäisen kerran
+ * @param tapa - lajitteluperuste
+ */
 function listaaJoukkueet(data, paivitys, tapa) {
 	let div = document.getElementById("tupa");
 	let taulukko = div.getElementsByTagName("table")[0];
@@ -27,9 +32,10 @@ function listaaJoukkueet(data, paivitys, tapa) {
 	// Tuhoaa taulukosta joukkueiden tiedot sisältävät rivit, mikäli listausta päivitetään
 	if (paivitys) {	
 		let rivi = taulukko.getElementsByTagName('tr');
+		console.log(rivi);
 		let riveja = rivi.length;
 		for (let x=riveja-1; x>0; x--) {
-		taulukko.removeChild(rivi[x]);
+			taulukko.removeChild(rivi[x]);
 		}
 	}
 	else {
@@ -41,7 +47,6 @@ function listaaJoukkueet(data, paivitys, tapa) {
 			event.preventDefault();
 			listaaJoukkueet(data, true, "pisteet");
 			div.tapa = "pisteet";
-			console.log(tapa);
 		}); 
 		
 		let otsikot = div.querySelectorAll("tr th");
@@ -124,9 +129,14 @@ function listaaJoukkueet(data, paivitys, tapa) {
 		tr.appendChild(tdPisteet);
 		taulukko.appendChild(tr);	
 	}
+	console.log(div.tapa);
 }
 
-// Järjestää joukkueet parametrina annetun ehdon mukaisesti
+/**
+ * Muokkaa parametrina olevan joukkueen
+ * @param joukkueet - tietorakenteen sisältämät joukkueet
+ * @param tapa - lajitteluperuste
+ */
 function jarjesta(joukkueet, tapa) {
 	if (tapa === "sarja") {
 		joukkueet.sort(function (a, b) {
@@ -173,9 +183,10 @@ function jarjesta(joukkueet, tapa) {
 	return joukkueet;
 }
 
-/*
-Laskee joukkueen pisteet
-*/
+/**
+ * Lasketaan joukkueen pisteet
+ * @param joukkue - joukkue jonka pisteet lasketaan
+ */
 function joukkueenPisteet(joukkue) {
 	let lahtoaika = new Date(data["alkuaika"]);
 	let loppuaika = new Date(data["loppuaika"]);
@@ -202,17 +213,13 @@ function joukkueenPisteet(joukkue) {
 	return pisteet;
 }
 
-/* 
-Luo lomakkeen olemassaolevan joukkueen muokkausta varten
-*/
+/**
+ * Muokkaa parametrina olevan joukkueen
+ * @param joukkue - muokattava joukkue
+ */
 function muokkaaJoukkueLomake(joukkue) {
 	let lomake = document.getElementById("joukkuelomake")[0];
-	lomake.parentNode.reset();
-	let muokkaa = document.getElementsByName("muokkaa")[0];
-	muokkaa.disabled = false;
-	let lisaa = document.getElementsByName("joukkue")[0];
-	lisaa.style.visibility = "hidden"; 
-	lisaa.insertAdjacentElement("beforebegin", muokkaa);
+	//lomake.parentNode.reset();
 	let inputit = Array.from(document.querySelectorAll("p label input"));
 	for (let i = 0; i<= joukkue["jasenet"].length+1; i++) {
 		if (i == 0) {
@@ -239,17 +246,22 @@ function muokkaaJoukkueLomake(joukkue) {
 		}
 	}
 	inputit.slice(2);
+	let muokkaa = document.getElementsByName("muokkaa")[0];
+	muokkaa.disabled = false;
+	let lisaa = document.getElementsByName("joukkue")[0];
+	lisaa.style.visibility = "hidden"; 
+	lisaa.insertAdjacentElement("beforebegin", muokkaa);
+	muokkaa.joukkue = joukkue;
 	muokkaa.style.visibility = "visible"; 
-	muokkaa.addEventListener("click", function(event) {
-		muokkaaJoukkue(joukkue, muokkaa, lisaa);
-		event.preventDefault();
-	}, {once: true});
 }
 
-/*
-Muokkaa parametrina olevan joukkueen
-*/
-function muokkaaJoukkue(joukkue) {
+/**
+ * Muokkaa parametrina olevan joukkueen
+ * @param joukkue - muokattava joukkue
+ */
+function muokkaaJoukkue(e) {
+	e.preventDefault();
+	let joukkue = e.target.joukkue;
 	console.log(joukkue);
 	let lomake = document.getElementById("joukkuelomake")[0];
 	let inputit = lomake.getElementsByTagName("input");
@@ -275,9 +287,11 @@ function muokkaaJoukkue(joukkue) {
 	listaaJoukkueet(data, true, tapa);
 }
 
-/*
-Luo lomakkeen uuden joukkueen liäsystä varten
-*/
+
+/**
+ * Luo lomakkeen uuden joukkueen liäsystä varten
+ * @param data - tietorakenne
+ */
 function lisaaJoukkueLomake(data) {
 	
 	let lomake = document.getElementById("joukkuelomake")[0];
@@ -307,18 +321,21 @@ function lisaaJoukkueLomake(data) {
 	lomake.childNodes[5].insertAdjacentElement("beforebegin", fieldset);
 	
 	let inputit = fieldset.getElementsByTagName("input");	
-	inputit[1].addEventListener("input", addNew);
+	inputit[0].addEventListener("input", addNew);
 	
 	let muokkaa = document.getElementsByName("muokkaa")[0];
 	muokkaa.style.visibility = "hidden"; 
+	muokkaa.addEventListener("click", muokkaaJoukkue, true);
 	let lisaa = document.getElementsByName("joukkue")[0];
 	lisaa.disabled = true; 
 	lisaa.addEventListener("click", function(event) {
         event.preventDefault();
 		lisaaJoukkue();
 		}, false);
+	
 }
 
+// luo uusia inputkenttiä lomakkeeseen jos näkyvillä olevat eivät tule riittämään
 function addNew(e) {
 	let lomake = document.getElementById("joukkuelomake")[0];	
 	let fieldset = document.getElementsByTagName("fieldset")[2];
@@ -327,13 +344,13 @@ function addNew(e) {
 		
 	let tyhja = false;  // oletuksena ei ole löydetty tyhjää
 	let jasenet = [];
-	let nimi = lomake.querySelector("p label input").value;
-	console.log(nimi);
+	let nimi = lomake.querySelector("p label input");
+	nimi.addEventListener("input", addNew);
 	// käydään läpi kaikki input-kentät viimeisestä ensimmäiseen
 	// järjestys on oltava tämä, koska kenttiä mahdollisesti poistetaan
 	// ja poistaminen sotkee dynaamisen nodeList-objektin indeksoinnin
 	// ellei poisteta lopusta 
-	for (let i=inputit.length-1 ; i>-1; i--) { // inputit näkyvät ulommasta funktiosta
+	for (let i=inputit.length-1 ; i>0; i--) { // inputit näkyvät ulommasta funktiosta
 		let input = inputit[i];
 
 		// jos on tyhjä ja on jo aiemmin löydetty tyhjä niin poistetaan
@@ -343,7 +360,7 @@ function addNew(e) {
 
 		// onko tyhjä?
 		if ( input.value.trim() == "") {
-					tyhja = true;
+				tyhja = true;
 		}
 	}
 			// jos ei ollut tyhjiä kenttiä joten lisätään yksi
@@ -353,21 +370,26 @@ function addNew(e) {
 		label.textContent = "Jäsen";
 		let input = document.createElement("input");
 		input.setAttribute("type", "text");
-		input.addEventListener("input", addNew);
 		p.appendChild(label).appendChild(input);
 		fieldset.appendChild(p);
 	}
 
 	// tehdään kenttiin numerointi
 	for (let i=0; i<inputit.length; i++) { // inputit näkyy ulommasta funktiosta
+			inputit[i].addEventListener("input", addNew);
 			let label = inputit[i].parentNode;
 			label.firstChild.nodeValue = "Jäsen " + (i+1); // päivitetään labelin ekan lapsen eli tekstin sisältö
 			if (inputit[i].value.trim() !== "") {
 				jasenet = jasenet.concat(inputit[i].value);	
 			}
 	}
-	if (jasenet.length >= 2 && nimi.length > 0) {
+	if (jasenet.length >= 2 && nimi.value.length > 0) {
 		lisaa.disabled = false;
+	}
+	
+	if (jasenet.length < 2 || nimi.value.length == 0) {
+		console.log("moi");
+		lisaa.disabled = true;
 	}
 } 
 
@@ -385,10 +407,10 @@ function lisaaJoukkue() {
 	let maxId = Number.MIN_SAFE_INTEGER;
 	for (let j of data["joukkueet"]) {
 		if (j["id"] >= parseInt(maxId)) {
-		maxId = j["id"];
+		maxId = j["id"] ;
 		}
 	}
-	joukkue["id"] = maxId  + 1 ;
+	joukkue["id"] = maxId + 1;
 	joukkue["nimi"] = lomake.querySelector("p label input").value;
 	let inputit = lomake.getElementsByTagName("input");
 	for (let i=inputit.length-1 ; i>-1; i--) {
@@ -417,6 +439,7 @@ function luoRastiLomake() {
 	let lat = document.createElement("label");
 	let input1 = document.createElement("input");
 	let span1 = document.createElement("span");
+	input1.setAttribute("type", "text");
 	input1.setAttribute("value", "");
 	span1.textContent = "Lat";
 	lat.appendChild(span1);
@@ -426,6 +449,7 @@ function luoRastiLomake() {
 	let lon = document.createElement("label");
 	let input2 = document.createElement("input");
 	let span2 = document.createElement("span");
+	input2.setAttribute("type", "text");
 	input2.setAttribute("value", "");
 	span2.textContent = "Lon";
 	lon.appendChild(span2);	
@@ -435,6 +459,7 @@ function luoRastiLomake() {
 	let koodi = document.createElement("label");
 	let input3 = document.createElement("input");
 	let span3 = document.createElement("span");
+	input3.setAttribute("type", "text");
 	input3.setAttribute("value", "");
 	span3.textContent = "Koodi";
 	koodi.appendChild(span3);
@@ -451,7 +476,12 @@ function luoRastiLomake() {
 	fieldset.appendChild(painike);
 }
 
-//Lisää rastin tietorakenteeseen
+/**
+ * Lisätään joukkue tietorakenteeseen oikeaan sarjaan
+ * @param input1 - leveyssuunta
+ * @param input2 - pituussuunta
+ * @param input3 - rastin koodi
+ */
 function lisaaRasti(input1, input2, input3){
 	if (input1.value, input2.value, input3.value == "") {
 		return;
@@ -466,7 +496,7 @@ function lisaaRasti(input1, input2, input3){
 	let lon = input2.value;
 	let koodi = input3.value;
 	let rasti = {
-		"id" : maxId + 1 ,
+		"id" : maxId + 1,
 		"koodi" : koodi,
 		"lat" : lat,
 		"lon" : lon
@@ -475,7 +505,8 @@ function lisaaRasti(input1, input2, input3){
 	input1.value = "";
 	input2.value = "";
 	input3.value = "";
-	data["rastit"].sort((a,b) => (a["koodi"]  > b["koodi"]) ? 1 : -1);
+	data["rastit"].sort((a,b) => (a["koodi"].toUpperCase()  > b["koodi"].toUpperCase()) ? 1 : -1);
+	console.log("Rasti".padEnd(10), "Lat".padEnd(10), "Lon");
 	for (let s of data["rastit"]) {
 		console.log(s["koodi"].padEnd(10), s["lat"].padEnd(10), s["lon"]);
 	}
