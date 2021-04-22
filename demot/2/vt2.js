@@ -388,7 +388,7 @@ function addNew(e) {
 	}
 	
 	if (jasenet.length < 2 || nimi.value.length == 0) {
-		console.log("moi");
+		//console.log("moi");
 		lisaa.disabled = true;
 	}
 } 
@@ -414,8 +414,8 @@ function lisaaJoukkue() {
 	joukkue["nimi"] = lomake.querySelector("p label input").value;
 	let inputit = lomake.getElementsByTagName("input");
 	for (let i=inputit.length-1 ; i>-1; i--) {
-		if (inputit[i].value.trim() !== "") {
-			joukkue["jasenet"].unshift(inputit[i].value);
+		if (i !== 0 && inputit[i].value.trim() !== "") {
+			joukkue["jasenet"] = joukkue["jasenet"].concat((inputit[i].value));
 		}
 		if (i > 2) {
 			inputit[i].parentNode.remove();
