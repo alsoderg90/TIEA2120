@@ -14,44 +14,35 @@
   -->
        <h1>Tulospalvelu</h1>
 		<form action="#" method="post" id="lomake">
-		<fieldset id="joukkue">
-		<legend>Joukkueen tiedot</legend>
-		<div class="vasen">
-			<label for="nimi"> Nimi </label>
-		</div>
-		<p>
-			<input id="nimi" type="text" required="required" pattern="\S+" minlength="2"></input>
-		</p>
-		<div id="leimaustavat" class="vasen">
-			<label> Leimaustapa </label>
-		</div>
-		<div id="sarjat" class="vasen">
-		<label> Sarja </label>
-		</div>
-		</fieldset>
-		<fieldset id="jasen">
-		<legend>Joukkueen tiedot</legend>
-		<p>
-		<label for="jasen1"> Jäsen 1 </label>
-		<input id="jasen1" type="text"></input>
-		</p>
-		<p>
-		<label for="jasen2"> Jäsen 2 </label>
-		<input id="jasen2" type="text"></input>
-		</p>
-		</fieldset>
-		<input type="submit" name="laheta" value="Tallenna"></input>
+			<fieldset id="joukkue">
+				<legend>Joukkueen tiedot</legend>
+				<div class="vasen">
+					<label for="nimi"> Nimi </label>
+				</div>
+				<p>
+					<input id="nimi" type="text" required="required" ></input>
+				</p>
+				<div id="leimaustavat" class="vasen">
+					<label> Leimaustapa </label>
+				</div>
+				<div id="sarjat" class="vasen">
+					<label> Sarja </label>
+				</div>
+			</fieldset>
+			<fieldset id="jasen">
+				<legend>Jäsenet</legend>
+			</fieldset>
+			<input type="submit" name="laheta" value="Tallenna"></input>
 		</form>
-
 		<form action="#" method="post" id="lomakeLT">
-		<fieldset id="leimaustapa">
-		<legend>Leimaustavan tiedot</legend>
-		<p>
-		<label for="nimi"> Nimi </label>
-		<input id="nimiLT" type="text" required="required" maxlength="2"></input>
-		</p>
-		</fieldset>
-		<p><input type="submit" name="laheta" value="Tallenna"></input></p>
+			<fieldset id="leimaustapa">
+				<legend>Leimaustavan tiedot</legend>
+				<p>
+					<label for="nimiLT"> Nimi </label>
+					<input id="nimiLT" type="text" required="required" minlength="2"></input>
+				</p>
+			</fieldset>
+			<p><input type="submit" name="laheta" value="Tallenna"></input></p>
 		</form>
 		<div id="joukkuelista"></div>
 <!-- Tästä eteenpäin sivun sisältöä ei saa muuttaa -->
