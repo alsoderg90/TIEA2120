@@ -116,7 +116,6 @@ function lisaaJoukkue(data, muokkaus) {
 	document.getElementById("lomake").reset();
 	let lomake = document.getElementById("lomake");
 	lomake.muokkaa = false;
-	console.log(joukkue);
 }
 
 function leimaustapa(lt) {
@@ -132,7 +131,6 @@ function muokkaaLomake(joukkue) {
 	for (let i = 0; i<leimaustavat.length; i++) {	
 		leimaustavat[i].checked = false;
 	}
-	console.log(joukkue);
 	let lomake = document.getElementById("lomake");
 	lomake.muokkaa = joukkue["id"];
 	let nimi = document.getElementById("nimi");
@@ -145,34 +143,34 @@ function muokkaaLomake(joukkue) {
 		}
 	for (let lt of joukkue["leimaustapa"]) {
 		let leimaus = leimaustapa(lt);
-		console.log(leimaus);
 		for (let i = 0; i<leimaustavat.length; i++) {	
 			if (leimaus === leimaustavat[i].id) {
-				console.log(leimaustavat[i].id);
 				leimaustavat[i].checked = true;
 			}
 		}		
 	}	
 	let fdJasenet = document.getElementById("jasen");
 	let inputit = Array.from(fdJasenet.querySelectorAll("p label input"));
-	for (let i = 0; i<= joukkue["jasenet"].length-1; i++) { // length-1
+	for (let i = 0; i < joukkue["jasenet"].length; i++) { // length-1
 		if (i < inputit.length) {
 			inputit[i].value = joukkue["jasenet"][i];
 		}
-		else {
+		else if (i < joukkue["jasenet"].length) {
 			let p = document.createElement("p");
 			let label = document.createElement("label");
 			label.textContent = "Jäsen " + i;
 			let input = document.createElement("input");
 			input.setAttribute("type", "text");
 			input.addEventListener("input", addNew);
+			input.value = joukkue["jasenet"][i]; // [i-1]
 			inputit = inputit.concat(input);
 			p.appendChild(label).appendChild(input);
 			fdJasenet.appendChild(p);
-			inputit[i].value = joukkue["jasenet"][i-1]; // [i-1]
 		}
-		if (i > inputit.length) {
-			inputit[i].parentNode.remove()
+	}
+	for (let i = 0; i < inputit.length; i++) {
+		if (i >= joukkue["jasenet"].length) {
+			inputit[i].parentNode.remove();
 		}
 	}
 	inputit.slice(2);	
@@ -266,7 +264,6 @@ function lisaaLeimaustapa(data) {
 	leimaustapa.addEventListener("input", function(e) {
 		leimaustapa.setCustomValidity("");
 		for (let j of data["leimaustapa"]) {
-			console.log("112");
 			if (j.toUpperCase().trim() === leimaustapa.value.toUpperCase().trim()) {
 				leimaustapa.setCustomValidity("Ei kahta samannimistä leimaustapaa");
 			}
