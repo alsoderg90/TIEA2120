@@ -1,0 +1,48 @@
+#map {
+	width: 100vh;
+}
+
+#joukkueet {
+	float: left;
+	width: 25%;
+}
+
+#kartalla {
+	float: left;
+	width: 50%;
+
+}
+
+#rastit {
+	float: left;
+	width: 25%;
+} 
+
+div  {
+	text-align: center;	
+}
+
+div p {
+	text-align: left;	
+}
+
+td {
+	padding: 0em;
+}
+
+
+p {
+	margin: 0;
+}
+
+.div, .table {
+	padding-bottom: 60px;
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+.table {
+	table-layout: fixed;
+	width: 100%;
+}
+
