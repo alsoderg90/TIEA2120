@@ -2,6 +2,7 @@
 <html lang="fi">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8"/>
 <title>Viikkotehtävä 5 - kartat ja drag &amp; drop</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
@@ -22,12 +23,16 @@
 <script src="https://appro.mit.jyu.fi/tiea2120/vt/vt3/2021/data2021.js"></script>
 <script src="vt5.js"></script>
 <div id="map"></div>
-<section id="container">
-	<div id="joukkueet"> <b>Joukkueet</b> </div>
-	<div id="kartalla"> <b>Kartalla</b>
+<div id="container">
+	<div id="joukkueet">
+		<b>Joukkueet</b>
+	</div>
+	<div id="kartalla"> 
+		<b>Kartalla</b>
 		<div class="div"> </div>
 	</div>
-	<div id="rastit"> <b>Rastit</b> </div>
+	<div id="rastit"> 
+		<b>Rastit</b> </div>
 </div>
 <!-- Tästä eteenpäin on vain apuvälineenä käytettäviä skriptejä -->
 <!-- HTMLinspectoria käytetään sivun live-muutosten validointiin. Kannattaa

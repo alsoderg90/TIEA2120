@@ -6,19 +6,23 @@
 
 // kirjoita tänne oma ohjelmakoodisi
 console.log(data);
+var mymap;
+var x;
+var y;
  $( document ).ready(function() {
 	 
     kartta();
 	joukkueet();
 	rastit();
-    });
+	naytaKartalla(mymap);
+});
 	
 function kartta() {
 	
 	var map = $("#map");
-		map.css("width", Math.round(window.innerWidth));
-		map.css("height", Math.round(window.innerHeight/2.5));
-	var mymap =  L.map('map', {
+		map.css("width", Math.round(window.innerWidth) + "px");
+		map.css("height", Math.round(window.innerHeight/2.5) + "px");
+	mymap =  L.map('map', {
      crs: L.TileLayer.MML.get3067Proj()
     }).setView([62.2333, 25.7333], 11);
 	L.tileLayer.mml_wmts({ layer: "maastokartta", key : "a2b19a2e-60cc-4fe8-81a4-f0095b0b9809" }).addTo(mymap);
@@ -39,7 +43,6 @@ function kartta() {
 				radius: 150
 			}
         ).addTo(mymap);
-		console.log(lat, maxLat);
 		if (lat >= maxLat ) {
 			maxLat = lat;
 		}
@@ -70,15 +73,14 @@ function rastit() {
 	divRastit[0].appendChild(table);
 	var rivi = 1;
 	
-
-	
 	for (var i=0; i<rastit.length; i++) {
-		var p = document.createElement("p");
+		let p = document.createElement("p");
 		p.style.backgroundColor = rainbow(rastit.length-1, i);
 		p.appendChild(document.createTextNode(rastit[i]["koodi"]));
 		p.setAttribute("draggable", "true");
+		p.setAttribute("id", "rasti" + rastit[i]["id"]);
 		p.addEventListener("dragstart", function(e) {
-			e.dataTransfer.setData("text/plain", rastit[i]);
+			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
 		});
 		var td = document.createElement("td");
 		if (i < 22) {
@@ -110,14 +112,76 @@ function joukkueet() {
 	div.setAttribute("class", "div");
 	
 	for (var i=0; i<joukkueet.length; i++) {
-		var p = document.createElement("p");
+		let p = document.createElement("p");
 		p.style.backgroundColor = rainbow(joukkueet.length-1, i);
+		p.setAttribute("id", "joukkue" + joukkueet[i]["id"]);
 		p.appendChild(document.createTextNode(joukkueet[i]["nimi"]));
 		p.setAttribute("draggable", "true");
+		p.addEventListener("dragstart", function(e) {
+			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
+		});	
 		div.appendChild(p);			
 	}
 	divJoukkueet[0].appendChild(div);	
 }
+
+function naytaKartalla() {
+
+	let divKartalla = $(".div")[1];
+	console.log(divKartalla);
+	divKartalla.addEventListener("dragover", function(e) {
+		e.preventDefault();
+		console.log(e.clientX, e.clientY);
+		e.dataTransfer.dropEffect = "move";
+		x = e.clientX;
+		y = e.clientY;
+	});
+	divKartalla.addEventListener("drop", function(e) {
+		e.preventDefault();
+		console.log(e);
+		var data = e.dataTransfer.getData("text");
+		let p = document.getElementById(data);
+		p.style.position = "absolute";
+		e.target.appendChild(p);
+		console.log("X:",x, " Y:",y);
+		p.style.top = y + "px";
+		p.style.left = x + "px";
+		let color = p.style.backgroundColor;
+		if (data.startsWith("joukkue")) {
+			piirraReitti(parseInt(data.substring(7)),color);
+		}
+		else if (data.StartsWith("rasti")) {
+			console.log("jee");
+		}
+	});	
+}
+
+function piirraReitti(id, backgroundcolor) {
+	console.log(id);
+	var joukkue = null;
+	for (let j of data["joukkueet"]) {
+		if ( j["id"] === id) {
+			joukkue = j;
+		}
+	}
+	console.log(joukkue);
+	var joukkueenRastit = joukkue["rastit"];
+	var koordinaatit = [];
+	for (let r1 of joukkueenRastit) {
+		for (let r2 of data["rastit"]){
+			try {
+				if (r1["rasti"].toString() === r2["id"].toString()) {
+					koordinaatit.push({"lat": r2["lat"], "lon": r2["lon"]});
+				}
+			}
+			catch(err) {
+				console.log(err.message);
+			}
+		}
+	}
+	console.log(backgroundcolor);
+	let polyline = L.polyline(koordinaatit, {color: backgroundcolor}).addTo(mymap);
+}	
 
 function rainbow(numOfSteps, step) {
     // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
