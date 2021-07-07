@@ -7,18 +7,16 @@
 // kirjoita tänne oma ohjelmakoodisi
 console.log(data);
 var mymap;
-var x;
-var y;
  $( document ).ready(function() {
-	 
     kartta();
 	joukkueet();
 	rastit();
-	naytaKartalla(mymap);
+	naytaKartalla();
 });
 	
 function kartta() {
 	
+	// kartan luominen
 	var map = $("#map");
 		map.css("width", Math.round(window.innerWidth) + "px");
 		map.css("height", Math.round(window.innerHeight/2.5) + "px");
@@ -27,11 +25,13 @@ function kartta() {
     }).setView([62.2333, 25.7333], 11);
 	L.tileLayer.mml_wmts({ layer: "maastokartta", key : "a2b19a2e-60cc-4fe8-81a4-f0095b0b9809" }).addTo(mymap);
 	
+	// koordinaatit kartan keskittämistä rastien alueelle
 	var maxLat = Number.MIN_VALUE;
 	var maxLon = Number.MIN_VALUE;
 	var minLon = Number.MAX_VALUE;
 	var minLat = Number.MAX_VALUE;
 	
+	// rastien läpi käynti ja niiden merkitseminen karttaan, sekä ääriarvojen etsiminen
 	for (var rasti of data["rastit"]) {
 		var lat = parseFloat(rasti["lat"]);
 		var lon = parseFloat(rasti["lon"]);
@@ -56,6 +56,7 @@ function kartta() {
 			minLat = lat; 
 		}
 	}	
+	// kartan keskitys
 	mymap.fitBounds([
 		[minLat, minLon],
 		[maxLat, maxLon]
@@ -63,46 +64,61 @@ function kartta() {
 	]);
 }
 
-function rastit() {
-
-	var divRastit = $("#rastit");
-	var rastit = data["rastit"];
-	rastit.sort((a,b) => a["koodi"].toUpperCase() > b["koodi"].toUpperCase() ? -1 : 1);
-	var table = document.createElement("table");
-	table.setAttribute("class", "table");
-	divRastit[0].appendChild(table);
-	var rivi = 1;
-	
-	for (var i=0; i<rastit.length; i++) {
-		let p = document.createElement("p");
-		p.style.backgroundColor = rainbow(rastit.length-1, i);
-		p.appendChild(document.createTextNode(rastit[i]["koodi"]));
-		p.setAttribute("draggable", "true");
-		p.setAttribute("id", "rasti" + rastit[i]["id"]);
-		p.addEventListener("dragstart", function(e) {
-			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
-		});
-		var td = document.createElement("td");
-		if (i < 22) {
-			var tr = document.createElement("tr");
-			table.appendChild(tr);
-		}
-
-		if (i % 22 === 0) {
-			tr = document.getElementsByTagName("tr")[0];
-			td.appendChild(p);
-			tr.appendChild(td);
-			rivi = 1;
-		}	
-		else {
-			var asd = document.getElementsByTagName("tr")[rivi];
-			td.appendChild(p);
-			asd.appendChild(td);
-			rivi++;
-		} 
-	} 
+// lisätään tapahtumienkuuntelijat 
+function naytaKartalla() {
+	let divKartalla = $(".div")[1];
+	console.log(divKartalla);
+	divKartalla.addEventListener("dragover", dragover);
+	divKartalla.addEventListener("drop", dropKartalla);	
 }
 
+//tapahtumankäsittelijä kun elementti raahataan
+function dragover(e) {
+	e.preventDefault();
+	e.dataTransfer.dropEffect = "move";
+}
+
+//tapahtumankäsittelijä kun elementti tiputetaan "kartalla"-elementtiin
+function dropKartalla(e) {
+	console.log(e);
+	e.preventDefault();
+	var data = e.dataTransfer.getData("text");
+	var p = document.getElementById(data);
+	e.target.appendChild(p);
+	console.log(data);
+	console.log(p);
+	p.style.position = "absolute";
+	p.style.top = e.clientY + "px";
+	p.style.left = e.clientX + "px";
+	let color = p.style.backgroundColor;
+	if (data.startsWith("joukkue")) {
+		p.matka = piirraReitti(parseInt(data.substring(7)),color);
+	}
+	if (data.startsWith("rasti")) {
+		console.log("jee");
+		let divJoukkue = document.getElementsByClassName("div")[0];
+		divJoukkue.addEventListener("dragover", dragover);
+	}
+}
+
+//tapahtumankäsittelijä kun elementti tiputetaan "joukkueet"-elementtiin
+function dropJoukkuelista(e) {
+	e.preventDefault();
+	var data = e.dataTransfer.getData("text");
+	var p = document.getElementById(data);
+	p.style.position = "initial";
+	if (e.target.tagName === "P") {
+		e.target.parentNode.appendChild(p);
+	}
+	if (e.target.tagName === "DIV") {
+		e.target.appendChild(p);
+	}
+	p.matka.remove();
+	console.log(data);
+	console.log(p);
+}
+
+//lisätään tietorakenteen joukkueet sivulle
 function joukkueet() {
 	
 	var divJoukkueet = $("#joukkueet");
@@ -110,61 +126,62 @@ function joukkueet() {
 	joukkueet.sort((a,b) => a["nimi"].toUpperCase() > b["nimi"].toUpperCase() ? 1 : -1);
 	var div = document.createElement("div");
 	div.setAttribute("class", "div");
+	div.addEventListener("dragover", dragover);
+	div.addEventListener("drop", dropJoukkuelista);
 	
 	for (var i=0; i<joukkueet.length; i++) {
 		let p = document.createElement("p");
 		p.style.backgroundColor = rainbow(joukkueet.length-1, i);
 		p.setAttribute("id", "joukkue" + joukkueet[i]["id"]);
 		p.appendChild(document.createTextNode(joukkueet[i]["nimi"]));
-		p.setAttribute("draggable", "true");
-		p.addEventListener("dragstart", function(e) {
+		p.setAttribute("draggable", "true"); // elementistä raahattava
+		//elementille tapahtumankuuntelija kun aletaan raahata
+		p.addEventListener("dragstart", function(e) { 
 			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
+			
 		});	
 		div.appendChild(p);			
 	}
 	divJoukkueet[0].appendChild(div);	
 }
 
-function naytaKartalla() {
+//lisätään tietorakenteen rastit listana sivulle
+function rastit() {
 
-	let divKartalla = $(".div")[1];
-	console.log(divKartalla);
-	divKartalla.addEventListener("dragover", function(e) {
-		e.preventDefault();
-		console.log(e.clientX, e.clientY);
-		e.dataTransfer.dropEffect = "move";
-		x = e.clientX;
-		y = e.clientY;
-	});
-	divKartalla.addEventListener("drop", function(e) {
-		e.preventDefault();
-		console.log(e);
-		var data = e.dataTransfer.getData("text");
-		let p = document.getElementById(data);
-		p.style.position = "absolute";
-		e.target.appendChild(p);
-		console.log("X:",x, " Y:",y);
-		p.style.top = y + "px";
-		p.style.left = x + "px";
-		let color = p.style.backgroundColor;
-		if (data.startsWith("joukkue")) {
-			piirraReitti(parseInt(data.substring(7)),color);
-		}
-		else if (data.StartsWith("rasti")) {
-			console.log("jee");
-		}
-	});	
+	var divRastit = $("#rastit");
+	var rastit = data["rastit"];
+	rastit.sort((a,b) => a["koodi"].toUpperCase() > b["koodi"].toUpperCase() ? -1 : 1);
+	let div = document.createElement("div");
+	divRastit[0].appendChild(div);
+	var lista = document.createElement("ul");
+	div.appendChild(lista);
+	lista.setAttribute("class", "lista");
+	
+	for (var i=0; i<rastit.length; i++) {
+		let p = document.createElement("li");
+		p.style.backgroundColor = rainbow(rastit.length-1, i);
+		p.appendChild(document.createTextNode(rastit[i]["koodi"]));
+		p.setAttribute("id", "rasti" + rastit[i]["id"]);
+		p.setAttribute("draggable", "true"); // elementistä raahattava
+		//elementille tapahtumankuuntelija kun aletaan raahata
+		p.addEventListener("dragstart", function(e) {
+			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
+			let divJoukkue = document.getElementsByClassName("div")[0];
+			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
+			divJoukkue.removeEventListener("dragover", dragover);
+		});
+		lista.appendChild(p);
+	} 
 }
 
+// funktio joka yhdistää joukkueen käymät rastit kartalla
 function piirraReitti(id, backgroundcolor) {
-	console.log(id);
 	var joukkue = null;
 	for (let j of data["joukkueet"]) {
 		if ( j["id"] === id) {
 			joukkue = j;
 		}
 	}
-	console.log(joukkue);
 	var joukkueenRastit = joukkue["rastit"];
 	var koordinaatit = [];
 	for (let r1 of joukkueenRastit) {
@@ -179,8 +196,8 @@ function piirraReitti(id, backgroundcolor) {
 			}
 		}
 	}
-	console.log(backgroundcolor);
 	let polyline = L.polyline(koordinaatit, {color: backgroundcolor}).addTo(mymap);
+	return polyline;
 }	
 
 function rainbow(numOfSteps, step) {

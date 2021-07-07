@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
   crossorigin=""/>
-<link rel="stylesheet" href="tyylit.css" />
 </head>
+<link rel="stylesheet" href="tyylit.css" />
 <body>
 <script
 			  src="https://code.jquery.com/jquery-3.5.1.min.js"
@@ -22,17 +22,19 @@
 <script src="https://appro.mit.jyu.fi/tiea2120/ohjaus/ohjaus5/2021/mmlLayers.js"></script>
 <script src="https://appro.mit.jyu.fi/tiea2120/vt/vt3/2021/data2021.js"></script>
 <script src="vt5.js"></script>
-<div id="map"></div>
-<div id="container">
-	<div id="joukkueet">
-		<b>Joukkueet</b>
+<div id="sivu">
+	<div id="map"></div>
+	<div id="container">
+		<div id="joukkueet">
+			<b>Joukkueet</b>
+		</div>
+		<div id="kartalla"> 
+			<b>Kartalla</b>
+			<div class="div"> </div>
+		</div>
+		<div id="rastit"> 
+			<b>Rastit</b> </div>
 	</div>
-	<div id="kartalla"> 
-		<b>Kartalla</b>
-		<div class="div"> </div>
-	</div>
-	<div id="rastit"> 
-		<b>Rastit</b> </div>
 </div>
 <!-- Tästä eteenpäin on vain apuvälineenä käytettäviä skriptejä -->
 <!-- HTMLinspectoria käytetään sivun live-muutosten validointiin. Kannattaa

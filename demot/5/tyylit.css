@@ -1,23 +1,24 @@
+#sivu {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 #map {
-	width: 100vh;
+	width: 100%;
 }
 
-#joukkueet {
-	float: left;
-	width: 25%;
+#container {
+    display: table;
+    width: 100%;
 }
-
-#kartalla {
-	float: left;
-	width: 50%;
-	height: 150px;
-
+#container > div {
+    display: table-cell;
+    width: 25%;
 }
-
-#rastit {
-	float: left;
-	width: 25%;
-} 
+#container > div:nth-child(2) {
+    width: 50%;
+	padding: 15px;
+}
 
 div  {
 	text-align: center;	
@@ -25,25 +26,34 @@ div  {
 
 div p {
 	text-align: left;	
-}
-
-td {
-	padding: 0em;
-}
-
-
-p {
 	margin: 0;
 }
 
-.div, .table {
+li {
+	list-style-type: none;
+}
+
+
+.div {
 	padding-bottom: 60px;
 	border: 1px solid black;
 	border-collapse: collapse;
+	height: 400px;
 }
 
-.table {
-	table-layout: fixed;
-	width: 100%;
+.lista {
+	border: 1px solid black;
+	padding: 0;
+	margin: 0;
+	height: 460px;	
+    -webkit-column-count: 4;
+    -moz-column-count: 4;
+    column-count: 4;
+	list-style-type: none;
+	
 }
+
+
+
+
 
