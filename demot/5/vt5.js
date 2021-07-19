@@ -66,7 +66,7 @@ function kartta() {
 
 // lisätään tapahtumienkuuntelijat 
 function naytaKartalla() {
-	let divKartalla = $(".div")[1];
+	let divKartalla = $(".kartalla")[0];
 	console.log(divKartalla);
 	divKartalla.addEventListener("dragover", dragover);
 	divKartalla.addEventListener("drop", dropKartalla);	
@@ -95,7 +95,6 @@ function dropKartalla(e) {
 		p.matka = piirraReitti(parseInt(data.substring(7)),color);
 	}
 	if (data.startsWith("rasti")) {
-		console.log("jee");
 		let divJoukkue = document.getElementsByClassName("div")[0];
 		divJoukkue.addEventListener("dragover", dragover);
 	}
@@ -107,15 +106,13 @@ function dropJoukkuelista(e) {
 	var data = e.dataTransfer.getData("text");
 	var p = document.getElementById(data);
 	p.style.position = "initial";
-	if (e.target.tagName === "P") {
-		e.target.parentNode.appendChild(p);
+	if (e.target.tagName === "LI") {
+		e.target.parentNode.insertBefore(p, e.target);
 	}
 	if (e.target.tagName === "UL") {
 		e.target.appendChild(p);
 	}
 	p.matka.remove();
-	console.log(data);
-	console.log(p);
 }
 
 function dropRastilista(e) {
@@ -124,13 +121,11 @@ function dropRastilista(e) {
 	var p = document.getElementById(data);
 	p.style.position = "initial";
 	if (e.target.tagName === "LI") {
-		e.target.parentNode.appendChild(p);
+		e.target.parentNode.insertBefore(p, e.target);
 	}
 	if (e.target.tagName === "UL") {
 		e.target.appendChild(p);
 	}
-	console.log(data);
-	console.log(p);
 }
 
 //lisätään tietorakenteen joukkueet sivulle
@@ -139,12 +134,15 @@ function joukkueet() {
 	var divJoukkueet = $("#joukkueet");
 	var joukkueet = data["joukkueet"];
 	joukkueet.sort((a,b) => a["nimi"].toUpperCase() > b["nimi"].toUpperCase() ? 1 : -1);
-	var div = document.createElement("div");
-	div.setAttribute("class", "div");
-	div.addEventListener("drop", dropJoukkuelista);
+	let div = document.createElement("div");
+	divJoukkueet[0].appendChild(div);
+	var lista = document.createElement("ul");
+	lista.setAttribute("class", "lista");
+	lista.addEventListener("drop", dropJoukkuelista);
+	div.appendChild(lista);
 	
 	for (var i=0; i<joukkueet.length; i++) {
-		let p = document.createElement("p");
+		let p = document.createElement("li");
 		p.style.backgroundColor = rainbow(joukkueet.length-1, i);
 		p.setAttribute("id", "joukkue" + joukkueet[i]["id"]);
 		let nimi = joukkueet[i]["nimi"];
@@ -154,15 +152,47 @@ function joukkueet() {
 		//elementille tapahtumankuuntelija kun aletaan raahata
 		p.addEventListener("dragstart", function(e) { 
 			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
+			let ul = document.getElementsByClassName("lista")[1];
+			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
+			ul.removeEventListener("dragover", dragover);
+			// lisätään listaan tapahtumakuuntelija
+			lista.addEventListener("dragover", dragover);		
+		});	
+		lista.appendChild(p);			
+	}
+}
+
+//lisätään tietorakenteen rastit listana sivulle
+function rastit() {
+
+	var divRastit = $("#rastit");
+	var rastit = data["rastit"];
+	rastit.sort((a,b) => a["koodi"].toUpperCase() > b["koodi"].toUpperCase() ? -1 : 1);
+	let div = document.createElement("div");
+	divRastit[0].appendChild(div);
+	var lista = document.createElement("ul");
+	lista.setAttribute("class", "lista");
+	lista.setAttribute("id", "lista");
+	lista.addEventListener("drop", dropRastilista);
+	div.appendChild(lista);
+
+	for (var i=0; i<rastit.length; i++) {
+		let p = document.createElement("li");
+		p.style.backgroundColor = rainbow(rastit.length-1, i);
+		p.appendChild(document.createTextNode(rastit[i]["koodi"]));
+		p.setAttribute("id", "rasti" + rastit[i]["id"]);
+		p.setAttribute("draggable", "true"); // elementistä raahattava
+		//elementille tapahtumankuuntelija kun aletaan raahata
+		p.addEventListener("dragstart", function(e) {
+			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
 			let ul = document.getElementsByClassName("lista")[0];
 			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
 			ul.removeEventListener("dragover", dragover);
 			// lisätään listaan tapahtumakuuntelija
-			div.addEventListener("dragover", dragover);		
-		});	
-		div.appendChild(p);			
-	}
-	divJoukkueet[0].appendChild(div);	
+			lista.addEventListener("dragover", dragover);
+		});
+		lista.appendChild(p);
+	} 
 }
 
 /**
@@ -224,7 +254,7 @@ function joukkueenKilometrit(joukkue) {
 		j++;
 		}		
 	}
-	return Math.round(matka * 10) / 10
+	return Math.round(matka * 10) / 10;
 }
 
 function etsiRasti(rasti) {
@@ -266,38 +296,6 @@ function deg2rad(deg) {
   return deg * (Math.PI/180);
 }
 
-
-//lisätään tietorakenteen rastit listana sivulle
-function rastit() {
-
-	var divRastit = $("#rastit");
-	var rastit = data["rastit"];
-	rastit.sort((a,b) => a["koodi"].toUpperCase() > b["koodi"].toUpperCase() ? -1 : 1);
-	let div = document.createElement("div");
-	divRastit[0].appendChild(div);
-	var lista = document.createElement("ul");
-	lista.setAttribute("class", "lista");
-	lista.addEventListener("drop", dropRastilista);
-	div.appendChild(lista);
-
-	for (var i=0; i<rastit.length; i++) {
-		let p = document.createElement("li");
-		p.style.backgroundColor = rainbow(rastit.length-1, i);
-		p.appendChild(document.createTextNode(rastit[i]["koodi"]));
-		p.setAttribute("id", "rasti" + rastit[i]["id"]);
-		p.setAttribute("draggable", "true"); // elementistä raahattava
-		//elementille tapahtumankuuntelija kun aletaan raahata
-		p.addEventListener("dragstart", function(e) {
-			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
-			let divJoukkue = document.getElementsByClassName("div")[0];
-			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
-			divJoukkue.removeEventListener("dragover", dragover);
-			// lisätään listaan tapahtumakuuntelija
-			lista.addEventListener("dragover", dragover);
-		});
-		lista.appendChild(p);
-	} 
-}
 
 // funktio joka yhdistää joukkueen käymät rastit kartalla
 function piirraReitti(id, backgroundcolor) {
