@@ -110,10 +110,25 @@ function dropJoukkuelista(e) {
 	if (e.target.tagName === "P") {
 		e.target.parentNode.appendChild(p);
 	}
-	if (e.target.tagName === "DIV") {
+	if (e.target.tagName === "UL") {
 		e.target.appendChild(p);
 	}
 	p.matka.remove();
+	console.log(data);
+	console.log(p);
+}
+
+function dropRastilista(e) {
+	e.preventDefault();
+	var data = e.dataTransfer.getData("text");
+	var p = document.getElementById(data);
+	p.style.position = "initial";
+	if (e.target.tagName === "LI") {
+		e.target.parentNode.appendChild(p);
+	}
+	if (e.target.tagName === "UL") {
+		e.target.appendChild(p);
+	}
 	console.log(data);
 	console.log(p);
 }
@@ -126,24 +141,131 @@ function joukkueet() {
 	joukkueet.sort((a,b) => a["nimi"].toUpperCase() > b["nimi"].toUpperCase() ? 1 : -1);
 	var div = document.createElement("div");
 	div.setAttribute("class", "div");
-	div.addEventListener("dragover", dragover);
 	div.addEventListener("drop", dropJoukkuelista);
 	
 	for (var i=0; i<joukkueet.length; i++) {
 		let p = document.createElement("p");
 		p.style.backgroundColor = rainbow(joukkueet.length-1, i);
 		p.setAttribute("id", "joukkue" + joukkueet[i]["id"]);
-		p.appendChild(document.createTextNode(joukkueet[i]["nimi"]));
+		let nimi = joukkueet[i]["nimi"];
+		let matka = joukkueenKilometrit(joukkueet[i]);
+		p.appendChild(document.createTextNode(`${nimi} (${matka})`));
 		p.setAttribute("draggable", "true"); // elementistä raahattava
 		//elementille tapahtumankuuntelija kun aletaan raahata
 		p.addEventListener("dragstart", function(e) { 
 			e.dataTransfer.setData("text/plain", p.getAttribute("id"));
-			
+			let ul = document.getElementsByClassName("lista")[0];
+			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
+			ul.removeEventListener("dragover", dragover);
+			// lisätään listaan tapahtumakuuntelija
+			div.addEventListener("dragover", dragover);		
 		});	
 		div.appendChild(p);			
 	}
 	divJoukkueet[0].appendChild(div);	
 }
+
+/**
+ * Laskee joukkueen kulkemat kilometrit
+ * @param {Object} joukkue 
+ */
+function joukkueenKilometrit(joukkue) {
+	let matka = 0;
+	let lahto = false;
+	let i = 0;
+	let j = i+1;
+	while (j<joukkue["rastit"].length) {
+		let rastiA = etsiRasti(joukkue["rastit"][i]["rasti"]); // etsitään rasti a
+		let rastiB = etsiRasti(joukkue["rastit"][j]["rasti"]); // etsitään sitä seuraava rasti b
+		if ( rastiA === null) {
+			i++;
+			continue;
+		}
+		if (rastiB === null) {
+			j++;
+			continue;
+		}
+		if (rastiA["koodi"] == "MAALI" && lahto) {
+			break;
+		}		
+		if (rastiA["koodi"] == "LAHTO" || lahto) {
+			lahto = true;
+			let lat2;
+			let lon2;
+			let lat1 = parseFloat(rastiA["lat"]);
+			let lon1 = parseFloat(rastiA["lon"]);
+			try {
+				lat2 = parseFloat(rastiB["lat"]);
+				lon2 = parseFloat(rastiB["lon"]);
+			}
+			catch(e) {
+				j++;
+				continue;
+			}
+
+			if (!lat1 || !lon1 || isNaN(lat1) || isNaN(lon1)) {
+				i++;
+				j++;
+				continue;
+			}
+			else if (!lat2 || !lon2 || isNaN(lat2) || isNaN(lon2)) {
+				j++;
+				continue;
+			}
+			let etaisyys = getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2 );
+			if (!isNaN(etaisyys)) {
+				matka += etaisyys;
+			}
+			i = j;
+			j = i+1;
+		}
+		else {
+		i++;
+		j++;
+		}		
+	}
+	return Math.round(matka * 10) / 10
+}
+
+function etsiRasti(rasti) {
+	for (let r of data["rastit"]) {
+		try {		
+			if (rasti.toString() === r["id"].toString()) {
+			return r;
+			}
+		}
+		catch (e) {
+			continue;
+		}
+	}
+	return null;	
+}
+
+/**
+ * Laskee kahden pisteen etäisyyden
+ * @param {Float} lat1 - ensimmäisen pisteen leveysaste
+ * @param {Float} lon1 - ensimmäisen pisteen pituusaste
+ * @param {Float} lat2 - toisen pisteen leveysaste
+ * @param {Float} lon2 - toisen pisteen pituusaste
+ */
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+	var R = 6371; // Radius of the earth in km
+	var dLat = deg2rad(lat2-lat1);  // deg2rad below
+	var dLon = deg2rad(lon2-lon1); 
+	var a = 
+		Math.sin(dLat/2) * Math.sin(dLat/2) +
+		Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+		Math.sin(dLon/2) * Math.sin(dLon/2)
+		; 
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+	var d = R * c; // Distance in km
+	return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180);
+}
+
 
 //lisätään tietorakenteen rastit listana sivulle
 function rastit() {
@@ -154,9 +276,10 @@ function rastit() {
 	let div = document.createElement("div");
 	divRastit[0].appendChild(div);
 	var lista = document.createElement("ul");
-	div.appendChild(lista);
 	lista.setAttribute("class", "lista");
-	
+	lista.addEventListener("drop", dropRastilista);
+	div.appendChild(lista);
+
 	for (var i=0; i<rastit.length; i++) {
 		let p = document.createElement("li");
 		p.style.backgroundColor = rainbow(rastit.length-1, i);
@@ -169,6 +292,8 @@ function rastit() {
 			let divJoukkue = document.getElementsByClassName("div")[0];
 			// poistetaan tapahtumankuuntelija, jotta ei voida raahata väärään paikkaan
 			divJoukkue.removeEventListener("dragover", dragover);
+			// lisätään listaan tapahtumakuuntelija
+			lista.addEventListener("dragover", dragover);
 		});
 		lista.appendChild(p);
 	} 
