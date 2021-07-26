@@ -22,6 +22,7 @@
 				<p>
 					<input id="nimi" type="text" required="required"  ></input>
 				</p>
+				<br></br><br></br>
 				<div id="leimaustavat" class="vasen">
 					<label> Leimaustapa </label>
 				</div>
@@ -32,17 +33,17 @@
 			<fieldset id="jasen">
 				<legend>Jäsenet</legend>
 			</fieldset>
-			<input type="submit" name="laheta" value="Tallenna"></input>
+			<input class="button" type="submit" name="laheta" value="Tallenna"></input>
 		</form>
 		<form action="#" method="post" id="lomakeLT">
 			<fieldset id="leimaustapa">
 				<legend>Leimaustavan tiedot</legend>
-				<p>
-					<label for="nimiLT"> Nimi </label>
-					<input id="nimiLT" type="text" required="required" minlength="2"></input>
-				</p>
+					<div class="vasen">
+						<label for="nimiLT"> Nimi </label>		
+					</div>
+					<p><input id="nimiLT" type="text" required="required" minlength="2"></input></p>
 			</fieldset>
-			<p><input type="submit" name="laheta" value="Tallenna"></input></p>
+			<input class="button" type="submit" name="laheta" value="Tallenna"></input>
 		</form>
 		<div id="joukkuelista"></div>
 <!-- Tästä eteenpäin sivun sisältöä ei saa muuttaa -->

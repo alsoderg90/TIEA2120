@@ -1,16 +1,42 @@
-.vasen {
-	width: 60%;
-	float: left;
-}
-
-p {
-	margin: 0;
+body {
+	background-color: white;
 }
 
 fieldset {
 	width:50%;
 }
 
+p {
+	margin: 0;
+	text-align: right;
+}
+
+.vasen {
+	width: 60%;
+	float: left;
+}
+
 .lt {
 	right: 100%;
 }
+
+#jasen p {
+	text-align: left;
+}
+
+#jasen input {
+	float: right;
+}
+
+
+@media (max-width: 720px) {
+  fieldset {
+    width: 90%;
+  }
+  
+  .vasen {
+	width: 30%;
+  }
+  
+}
+
