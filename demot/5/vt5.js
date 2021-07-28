@@ -7,6 +7,10 @@
 // kirjoita tänne oma ohjelmakoodisi
 console.log(data);
 var mymap;
+var kartanRastit = [];
+var marker;
+let rasti;
+
  $( document ).ready(function() {
     kartta();
 	joukkueet();
@@ -43,6 +47,8 @@ function kartta() {
 				radius: 150
 			}
         ).addTo(mymap);
+		kartanRastit = kartanRastit.concat(circle);
+		circle.addEventListener("click", rastiKlik);
 		if (lat >= maxLat ) {
 			maxLat = lat;
 		}
@@ -62,6 +68,65 @@ function kartta() {
 		[maxLat, maxLon]
 		
 	]);
+}
+
+function rastiKlik(e) {
+	if (marker !== undefined) {
+		marker.remove();
+	}
+	rasti = e.target;
+	for (let r of kartanRastit) {
+		if (r === rasti) {
+			rasti.setStyle({
+			fillColor:"red",
+			fillOpacity: 1
+			});	
+		}
+		else {
+			r.setStyle({
+			fillColor:"red",
+			fillOpacity: 0.2
+			});
+		}
+	}
+	marker = L.marker(rasti.getLatLng(), {draggable:'true'}).addTo(mymap);
+	marker.addEventListener("dragend", uusiRasti);
+}
+
+function uusiRasti (e) {
+	console.log(rasti);
+	let uusi = {
+		...rasti,
+		_latlng : e.target._latlng
+	};
+	uusi = L.circle(
+	uusi._latlng, {
+		color: 'red',
+		fillColor: '#f03',
+		fillOpacity: 0.2,
+		radius: 150
+	}).addTo(mymap);
+	kartanRastit.map(r => r !== rasti ? r : uusi);
+	uusi.addEventListener("click", rastiKlik);
+	
+	// päivitetään rastin koordinaatit
+	for (let r of data["rastit"]) {
+		if (parseFloat(r["lat"]).toFixed(6) === rasti._latlng.lat.toFixed(6) && parseFloat(r["lon"]).toFixed(6) === rasti._latlng.lng.toFixed(6)) {
+			console.log(r);
+			r["lat"] = uusi._latlng.lat.toFixed(6);
+			r["lon"] = uusi._latlng.lng.toFixed(6);
+			console.log(r);
+			
+		}
+	}
+	//poistetaan vanha rasti ja markeri
+	rasti.remove();
+	marker.remove();
+	
+	//poistetaan joukkuelistaus ja luodaan uusi päivitetyillä matkoilla
+	var lista = $("#joukkuelista");
+	lista.remove();
+	joukkueet();
 }
 
 // lisätään tapahtumienkuuntelijat 
@@ -141,6 +206,7 @@ function joukkueet() {
 	divJoukkueet[0].appendChild(div);
 	var lista = document.createElement("ul");
 	lista.setAttribute("class", "lista");
+	lista.setAttribute("id", "joukkuelista");
 	lista.addEventListener("drop", dropJoukkuelista);
 	div.appendChild(lista);
 	
@@ -150,7 +216,7 @@ function joukkueet() {
 		p.setAttribute("id", "joukkue" + joukkueet[i]["id"]);
 		let nimi = joukkueet[i]["nimi"];
 		let matka = joukkueenKilometrit(joukkueet[i]);
-		p.appendChild(document.createTextNode(`${nimi} (${matka})`));
+		p.appendChild(document.createTextNode(`${nimi} (${matka} km)`));
 		p.setAttribute("draggable", "true"); // elementistä raahattava
 		//elementille tapahtumankuuntelija kun aletaan raahata
 		p.addEventListener("dragstart", function(e) { 
