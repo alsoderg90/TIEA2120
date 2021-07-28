@@ -80,23 +80,26 @@ function dragover(e) {
 
 //tapahtumankäsittelijä kun elementti tiputetaan "kartalla"-elementtiin
 function dropKartalla(e) {
-	console.log(e);
+	
+	let sijaintiY = e.offsetY/e.target.offsetHeight * 100;
+	let sijaintiX = e.offsetX/e.target.offsetWidth * 100;
 	e.preventDefault();
 	var data = e.dataTransfer.getData("text");
 	var p = document.getElementById(data);
-	e.target.appendChild(p);
-	console.log(data);
-	console.log(p);
-	p.style.position = "absolute";
-	p.style.top = e.clientY + "px";
-	p.style.left = e.clientX + "px";
-	let color = p.style.backgroundColor;
-	if (data.startsWith("joukkue")) {
-		p.matka = piirraReitti(parseInt(data.substring(7)),color);
-	}
-	if (data.startsWith("rasti")) {
-		let divJoukkue = document.getElementsByClassName("div")[0];
-		divJoukkue.addEventListener("dragover", dragover);
+	if (e.target.tagName !== "LI") {
+		e.target.appendChild(p);
+		console.log(e.target);
+		p.style.top = sijaintiY + "%";
+		p.style.left = sijaintiX + "%";		
+		p.style.position = "absolute";
+		let color = p.style.backgroundColor;
+		if (data.startsWith("joukkue")) {
+			p.matka = piirraReitti(parseInt(data.substring(7)),color);
+		}
+		if (data.startsWith("rasti")) {
+			let divJoukkue = document.getElementsByClassName("div")[0];
+			divJoukkue.addEventListener("dragover", dragover);
+		}
 	}
 }
 
@@ -217,7 +220,8 @@ function joukkueenKilometrit(joukkue) {
 		}
 		if (rastiA["koodi"] == "MAALI" && lahto) {
 			break;
-		}		
+		}
+		
 		if (rastiA["koodi"] == "LAHTO" || lahto) {
 			lahto = true;
 			let lat2;
