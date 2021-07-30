@@ -68,20 +68,27 @@ li {
 	padding-left:0;
 }
 
+.leaflet-tooltip-pane .text {
+  background: transparent;
+  border:0;
+  box-shadow: none;
+  font-size:0.75em;
+}
+
 @media only screen and (max-width: 800px) {
   #container {
     display: flex;
 	flex-direction: column;
   }
 
-#container > div {
+ #container > div {
     width: 100%;
-}  
+  }  
 
-#kartalla {
+ #kartalla {
     width: 100%;
 	padding: 0;
-}
+ }
   
 }
 

@@ -8,12 +8,14 @@
 console.log(data);
 var mymap;
 var kartanRastit = [];
+var joukkueet = [];
 var marker;
-let rasti;
+var rasti;
+var matkat = [];
 
  $( document ).ready(function() {
     kartta();
-	joukkueet();
+	joukkueetListaus();
 	rastit();
 	naytaKartalla();
 });
@@ -35,7 +37,7 @@ function kartta() {
 	var minLon = Number.MAX_VALUE;
 	var minLat = Number.MAX_VALUE;
 	
-	// rastien läpi käynti ja niiden merkitseminen karttaan, sekä ääriarvojen etsiminen
+	// rastien läpi käynti ja niiden merkitseminen karttaan
 	for (var rasti of data["rastit"]) {
 		var lat = parseFloat(rasti["lat"]);
 		var lon = parseFloat(rasti["lon"]);
@@ -44,11 +46,24 @@ function kartta() {
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.2,
-				radius: 150
+				radius: 150,
 			}
         ).addTo(mymap);
+		circle.id = rasti["id"];
 		kartanRastit = kartanRastit.concat(circle);
 		circle.addEventListener("click", rastiKlik);
+		
+		var teksti = L.tooltip({
+			permanent: true,
+			direction: "center",
+			className: 'text'
+		})
+		.setContent(rasti["koodi"])
+		.setLatLng([lat, lon]);
+		teksti.addTo(mymap);
+		circle.teksti = teksti;
+		
+		// ääriarvojen etsiminen
 		if (lat >= maxLat ) {
 			maxLat = lat;
 		}
@@ -75,30 +90,26 @@ function rastiKlik(e) {
 		marker.remove();
 	}
 	rasti = e.target;
-	for (let r of kartanRastit) {
-		if (r === rasti) {
-			rasti.setStyle({
+	kartanRastit.map(r => r === rasti ? r.setStyle({
 			fillColor:"red",
 			fillOpacity: 1
-			});	
-		}
-		else {
-			r.setStyle({
+			})
+			: r.setStyle({
 			fillColor:"red",
 			fillOpacity: 0.2
-			});
-		}
-	}
+			})
+	); 
 	marker = L.marker(rasti.getLatLng(), {draggable:'true'}).addTo(mymap);
+	marker.id = rasti.id;
 	marker.addEventListener("dragend", uusiRasti);
 }
 
 function uusiRasti (e) {
-	console.log(rasti);
+	marker.remove();
 	let uusi = {
 		...rasti,
 		_latlng : e.target._latlng
-	};
+	}; // luodaan uusi rasti kartalle
 	uusi = L.circle(
 	uusi._latlng, {
 		color: 'red',
@@ -106,33 +117,76 @@ function uusiRasti (e) {
 		fillOpacity: 0.2,
 		radius: 150
 	}).addTo(mymap);
-	kartanRastit.map(r => r !== rasti ? r : uusi);
+	uusi.id = rasti["id"];
 	uusi.addEventListener("click", rastiKlik);
 	
+	// vanhan rastin poisto taulukosta ja kartalta
+    for (let i = 0; i < kartanRastit.length; i++) {
+        if (kartanRastit[i]["id"] === rasti["id"]) {
+            kartanRastit[i].remove();
+            kartanRastit.splice(i, 1);
+         }
+    }
+	kartanRastit = kartanRastit.concat(uusi);
 	// päivitetään rastin koordinaatit
 	for (let r of data["rastit"]) {
 		if (parseFloat(r["lat"]).toFixed(6) === rasti._latlng.lat.toFixed(6) && parseFloat(r["lon"]).toFixed(6) === rasti._latlng.lng.toFixed(6)) {
-			console.log(r);
 			r["lat"] = uusi._latlng.lat.toFixed(6);
 			r["lon"] = uusi._latlng.lng.toFixed(6);
-			console.log(r);
-			
 		}
 	}
-	//poistetaan vanha rasti ja markeri
-	rasti.remove();
-	marker.remove();
+	// Päivitetään joukkueiden kulkemat rastit kartalta:
+	matkat.forEach(function (matka) { // poistetaan kaikki
+		matka.remove();
+	});
+	joukkueet.forEach(function(joukkue) { // piirretään kaikki
+		piirraReitti(joukkue["id"], joukkue["color"]);
+	});
 	
 	//poistetaan joukkuelistaus ja luodaan uusi päivitetyillä matkoilla
-	var lista = $("#joukkuelista");
-	lista.remove();
-	joukkueet();
+	//var lista = $("#joukkuelista");
+	//lista.remove();
+	//joukkueet();
 }
+
+// funktio joka yhdistää joukkueen käymät rastit kartalla
+function piirraReitti(id, backgroundcolor) {
+	console.log(id, backgroundcolor);
+	var joukkue = null;
+	for (let j of data["joukkueet"]) {
+		if ( j["id"] === id) {
+			joukkue = j;
+		}
+	}
+	joukkueet = joukkueet.filter(j => j["id"] !== id);
+	joukkueet = joukkueet.concat({
+		id: id,
+		color: backgroundcolor
+	});
+	var joukkueenRastit = joukkue["rastit"];
+	var koordinaatit = [];
+	for (let r1 of joukkueenRastit) {
+		for (let r2 of data["rastit"]){
+			try {
+				if (r1["rasti"].toString() === r2["id"].toString()) {
+					koordinaatit.push({"lat": r2["lat"], "lon": r2["lon"]});
+				}
+			}
+			catch(err) {
+				console.log(err.message);
+			}
+		}
+	}
+	let polyline = L.polyline(koordinaatit, {color: backgroundcolor}).addTo(mymap);
+	matkat = matkat.filter(m => m["color"] !== backgroundcolor);
+	matkat = matkat.concat(polyline);
+	let li = document.getElementById("joukkue" + id);
+	li.matka = polyline;
+}	
 
 // lisätään tapahtumienkuuntelijat 
 function naytaKartalla() {
 	let divKartalla = $(".kartalla")[0];
-	console.log(divKartalla);
 	divKartalla.addEventListener("dragover", dragover);
 	divKartalla.addEventListener("drop", dropKartalla);	
 }
@@ -149,21 +203,17 @@ function dropKartalla(e) {
 	let sijaintiY = e.offsetY/e.target.offsetHeight * 100;
 	let sijaintiX = e.offsetX/e.target.offsetWidth * 100;
 	e.preventDefault();
+	console.log(e.target.className);
 	var data = e.dataTransfer.getData("text");
 	var p = document.getElementById(data);
-	if (e.target.tagName !== "LI") {
+	if (e.target.className === "kartalla") {
 		e.target.appendChild(p);
-		console.log(e.target);
 		p.style.top = sijaintiY + "%";
 		p.style.left = sijaintiX + "%";		
 		p.style.position = "absolute";
 		let color = p.style.backgroundColor;
 		if (data.startsWith("joukkue")) {
-			p.matka = piirraReitti(parseInt(data.substring(7)),color);
-		}
-		if (data.startsWith("rasti")) {
-			let divJoukkue = document.getElementsByClassName("div")[0];
-			divJoukkue.addEventListener("dragover", dragover);
+			piirraReitti(parseInt(data.substring(7)),color);
 		}
 	}
 }
@@ -180,7 +230,14 @@ function dropJoukkuelista(e) {
 	if (e.target.tagName === "UL") {
 		e.target.appendChild(p);
 	}
-	p.matka.remove();
+	try {
+		p.matka.remove();
+		let id = parseInt(data.substring(7));
+		joukkueet = joukkueet.filter(joukkue => joukkue["id"] !== id);
+	}
+	catch(err) {
+		console.log(err.message);
+	}
 }
 
 function dropRastilista(e) {
@@ -197,7 +254,7 @@ function dropRastilista(e) {
 }
 
 //lisätään tietorakenteen joukkueet sivulle
-function joukkueet() {
+function joukkueetListaus() {
 	
 	var divJoukkueet = $("#joukkueet");
 	var joukkueet = data["joukkueet"];
@@ -366,32 +423,6 @@ function deg2rad(deg) {
   return deg * (Math.PI/180);
 }
 
-
-// funktio joka yhdistää joukkueen käymät rastit kartalla
-function piirraReitti(id, backgroundcolor) {
-	var joukkue = null;
-	for (let j of data["joukkueet"]) {
-		if ( j["id"] === id) {
-			joukkue = j;
-		}
-	}
-	var joukkueenRastit = joukkue["rastit"];
-	var koordinaatit = [];
-	for (let r1 of joukkueenRastit) {
-		for (let r2 of data["rastit"]){
-			try {
-				if (r1["rasti"].toString() === r2["id"].toString()) {
-					koordinaatit.push({"lat": r2["lat"], "lon": r2["lon"]});
-				}
-			}
-			catch(err) {
-				console.log(err.message);
-			}
-		}
-	}
-	let polyline = L.polyline(koordinaatit, {color: backgroundcolor}).addTo(mymap);
-	return polyline;
-}	
 
 function rainbow(numOfSteps, step) {
     // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
